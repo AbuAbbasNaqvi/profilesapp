@@ -1,0 +1,29 @@
+stages:
+  - build
+  - test
+  - deploy
+  - release
+
+job_build:
+  stage: build
+  script:
+    - echo "Building the project"
+
+job_test:
+  stage: test
+  script:
+    - echo "Running tests"
+    - ./run_tests.sh
+  shell: cmd  # Specify cmd or bash here instead of pwsh
+
+job_deploy:
+  stage: deploy
+  script:
+    - echo "Deploying the project"
+    # Add your deploy commands here
+
+job_release:
+  stage: release
+  script:
+    - echo "Releasing the project"
+    # Add your release commands here
