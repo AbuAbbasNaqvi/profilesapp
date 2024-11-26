@@ -3,7 +3,7 @@ pipeline {
 
     environment {
         JAVA_HOME = tool name: 'jdk-17', type: 'JDK'
-        MAVEN_HOME = tool name: 'M3', type: 'Maven'
+        MAVEN_HOME = tool name: 'Maven 3', type: 'Maven'
         SONARQUBE = 'SonarQube'  // Define the SonarQube tool name configured in Jenkins
         DOCKER_IMAGE = 'your-docker-image-name'  // Define your Docker image name
         DOCKER_REGISTRY = 'your-docker-registry'  // Define your Docker registry URL
