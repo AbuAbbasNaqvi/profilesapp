@@ -9,7 +9,119 @@ environment {
     }
 
     parameters {
+        booleanParam(name: 'SKIP_TESTS', defpipeline {
+    agent any
+
+    environment {
+        APP_NAME = "profilesapp-pipeline"
+        RELEASE = "1.0.0"
+        DOCKER_USER = "abbasnaqvi"
+        DOCKER_PASS = credentials('dockerhub')  // Using DockerHub credentials securely
+        IMAGE_NAME = "${DOCKER_USER}/${APP_NAME}"
+        IMAGE_TAG = "${RELEASE}-${BUILD_NUMBER}-${env.GIT_COMMIT.take(7)}"  // Dynamic image tag with commit hash
+        SKIP_TESTS = false  // Default value to run tests
+    }
+
+    parameters {
         booleanParam(name: 'SKIP_TESTS', defaultValue: false, description: 'Skip tests during build?')
+    }
+
+    stages {
+        stage("Cleanup Workspace") {
+            steps {
+                cleanWs() // Clean workspace before starting the build
+            }
+        }
+
+        stage("Checkout from SCM") {
+            steps {
+                git branch: 'develop', credentialsId: 'github', url: 'https://github.com/AbuAbbasNaqvi/profilesapp.git'  // GitHub credentials for repository access
+            }
+        }
+
+        stage("Build Application") {
+            steps {
+                script {
+                    def projectDir = 'profilesapp' // Directory where the project is located
+                    if (fileExists("${projectDir}/pom.xml")) {
+                        dir("${projectDir}") {
+                            // Use Maven to build the application
+                            sh "mvn clean package -DskipTests=${params.SKIP_TESTS}" // Skipping tests based on the parameter
+                        }
+                    } else {
+                        error "pom.xml not found in directory: ${projectDir}"
+                    }
+                }
+            }
+        }
+
+        stage("Test Application") {
+            steps {
+                script {
+                    def projectDir = 'profilesapp' // Directory where the project is located
+                    if (fileExists("${projectDir}/pom.xml")) {
+                        dir("${projectDir}") {
+                            // Run tests using Maven
+                            sh "mvn test"
+                        }
+                    } else {
+                        error "pom.xml not found in directory: ${projectDir}"
+                    }
+                }
+            }
+        }
+
+        stage("SonarQube Analysis") {
+            steps {
+                script {
+                    withSonarQubeEnv(credentialsId: 'jenkins-sonarqube-token') {  // Using SonarQube credentials for analysis
+                        sh "mvn sonar:sonar"
+                    }
+                }
+            }
+        }
+
+        stage("Quality Gate") {
+            steps {
+                script {
+                    waitForQualityGate abortPipeline: false, credentialsId: 'jenkins-sonarqube-token'  // Ensure SonarQube quality gate is passed
+                }
+            }
+        }
+
+        stage("Build & Push Docker Image") {
+            steps {
+                script {
+                    // Docker build and push logic using DockerHub credentials
+                    docker.withRegistry('https://index.docker.io/v1/', DOCKER_PASS) {
+                        def docker_image = docker.build("${IMAGE_NAME}:${IMAGE_TAG}")
+                        // Push the image with the specific tag and latest tag
+                        docker_image.push("${IMAGE_TAG}")
+                        docker_image.push('latest')
+                    }
+                }
+            }
+        }
+
+        stage("Deploy to Production") {
+            steps {
+                script {
+                    // Deployment logic using kubectl (ensure you have access to the cluster)
+                    sh 'kubectl apply -f deployment.yaml'  // Replace with your actual deployment logic
+                }
+            }
+        }
+
+        stage("Notify") {
+            steps {
+                script {
+                    slackSend(channel: '#build-notifications', message: "Build completed successfully! Tag: ${IMAGE_TAG}")
+                }
+            }
+        }
+    }
+}
+aultValue: false, description: 'Skip tests during build?')
     }
 
     stages {
