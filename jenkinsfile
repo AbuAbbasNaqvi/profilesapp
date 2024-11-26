@@ -1,18 +1,15 @@
-pipeline {
-    agent { label 'Jenkins-Agent' }
-
-    tools {
-        jdk 'Java17'  // Ensure Java 17 is configured in Jenkins Global Tool Configuration
-        maven 'Maven3' // Ensure Maven 3 is configured in Jenkins Global Tool Configuration
-    }
-    
-    environment {
+environment {
         APP_NAME = "profilesapp-pipeline"
         RELEASE = "1.0.0"
         DOCKER_USER = "abbasnaqvi"
-        DOCKER_PASS = credentials('dockerhub') // Use credentials from Jenkins' credentials store
+        DOCKER_PASS = credentials('dockerhub') 
         IMAGE_NAME = "${DOCKER_USER}/${APP_NAME}"
-        IMAGE_TAG = "${RELEASE}-${BUILD_NUMBER}"
+        IMAGE_TAG = "${RELEASE}-${BUILD_NUMBER}-${env.GIT_COMMIT.take(7)}"  // Dynamic image tag with commit hash
+        SKIP_TESTS = false  // Default value to run tests
+    }
+
+    parameters {
+        booleanParam(name: 'SKIP_TESTS', defaultValue: false, description: 'Skip tests during build?')
     }
 
     stages {
@@ -24,7 +21,7 @@ pipeline {
 
         stage("Checkout from SCM") {
             steps {
-                git branch: 'master', credentialsId: 'github', url: 'https://github.com/AbuAbbasNaqvi/profilesapp.git'
+                git branch: 'develop', credentialsId: 'github', url: 'https://github.com/AbuAbbasNaqvi/profilesapp.git'  // Changed to 'develop' branch
             }
         }
 
@@ -35,7 +32,7 @@ pipeline {
                     if (fileExists("${projectDir}/pom.xml")) {
                         dir("${projectDir}") {
                             // Use Maven to build the application
-                            sh "mvn clean package -DskipTests" // Skip tests for faster builds (can be removed if needed)
+                            sh "mvn clean package -DskipTests=${params.SKIP_TESTS}" // Skipping tests based on the parameter
                         }
                     } else {
                         error "pom.xml not found in directory: ${projectDir}"
@@ -88,6 +85,23 @@ pipeline {
                         docker_image.push("${IMAGE_TAG}")
                         docker_image.push('latest')
                     }
+                }
+            }
+        }
+
+        stage("Deploy to Production") {
+            steps {
+                script {
+                    // Example of deployment using kubectl
+                    sh 'kubectl apply -f deployment.yaml' // Replace with your actual deployment logic
+                }
+            }
+        }
+
+        stage("Notify") {
+            steps {
+                script {
+                    slackSend(channel: '#build-notifications', message: "Build completed successfully! Tag: ${IMAGE_TAG}")
                 }
             }
         }
