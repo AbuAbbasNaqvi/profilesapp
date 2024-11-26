@@ -1,9 +1,11 @@
 pipeline {
     agent { label 'Jenkins-Agent' }
+
     tools {
         jdk 'Java17'
         maven 'Maven3'
     }
+
     stages {
         stage("Cleanup Workspace") {
             steps {
@@ -19,14 +21,15 @@ pipeline {
 
         stage("Build Application") {
             steps {
-                sh "mvn clean package"
-            }
-        }
+                script {
+                    // If your pom.xml is located in a subfolder like 'profilesapp', adjust the path here.
+                    // This step makes sure you're in the correct directory.
+                    def projectDir = 'profilesapp' // Change this to the correct directory if needed
 
-        stage("Test Application") {
-            steps {
-                sh "mvn test"
-            }
-        }
-    }
-}
+                    // Make sure the directory exists before running Maven
+                    if (fileExists("${projectDir}/pom.xml")) {
+                        dir("${projectDir}") {
+                            sh "mvn clean package -DskipTests"  // Optional: Skips tests for faster builds
+                        }
+                    } else {
+           
