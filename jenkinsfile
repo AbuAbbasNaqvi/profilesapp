@@ -32,4 +32,27 @@ pipeline {
                             sh "mvn clean package -DskipTests"  // Optional: Skips tests for faster builds
                         }
                     } else {
-           
+                        error "pom.xml not found in directory: ${projectDir}"
+                    }
+                }
+            }
+        }
+
+        stage("Test Application") {
+            steps {
+                script {
+                    def projectDir = 'profilesapp' // Change this to the correct directory if needed
+
+                    // Make sure the directory exists before running Maven tests
+                    if (fileExists("${projectDir}/pom.xml")) {
+                        dir("${projectDir}") {
+                            sh "mvn test"
+                        }
+                    } else {
+                        error "pom.xml not found in directory: ${projectDir}"
+                    }
+                }
+            }
+        }
+    }
+}
