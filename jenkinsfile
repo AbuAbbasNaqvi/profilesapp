@@ -1,18 +1,19 @@
 pipeline {
-    agent { label 'Jenkins-Agent' }
+    agent any
 
     tools {
-        jdk 'Java 17'  // Changed to Java 11
-        maven 'Maven3'
+        jdk 'Java17'  // Make sure this name matches the one in the Jenkins Tool Configuration
+        maven 'Maven3' // Ensure Maven is installed as 'Maven3'
     }
+
     environment {
         APP_NAME = "profilesapp-pipeline"
         RELEASE = "1.0.0"
         DOCKER_USER = "abbasnaqvi"
-        DOCKER_PASS = credentials('dockerhub')  // Using DockerHub credentials securely
+        DOCKER_PASS = credentials('dockerhub')
         IMAGE_NAME = "${DOCKER_USER}/${APP_NAME}"
-        IMAGE_TAG = "${RELEASE}-${BUILD_NUMBER}-${env.GIT_COMMIT.take(7)}"  // Dynamic image tag with commit hash
-        SKIP_TESTS = false  // Default value to run tests
+        IMAGE_TAG = "${RELEASE}-${BUILD_NUMBER}-${env.GIT_COMMIT.take(7)}"
+        SKIP_TESTS = false
     }
 
     parameters {
@@ -22,24 +23,23 @@ pipeline {
     stages {
         stage("Cleanup Workspace") {
             steps {
-                cleanWs() // Clean workspace before starting the build
+                cleanWs()
             }
         }
 
         stage("Checkout from SCM") {
             steps {
-                git branch: 'develop', credentialsId: 'github', url: 'https://github.com/AbuAbbasNaqvi/profilesapp.git'  // GitHub credentials for repository access
+                git branch: 'develop', credentialsId: 'github', url: 'https://github.com/AbuAbbasNaqvi/profilesapp.git'
             }
         }
 
         stage("Build Application") {
             steps {
                 script {
-                    def projectDir = 'profilesapp' // Directory where the project is located
+                    def projectDir = 'profilesapp'
                     if (fileExists("${projectDir}/pom.xml")) {
                         dir("${projectDir}") {
-                            // Use Maven to build the application
-                            sh "mvn clean package -DskipTests=${params.SKIP_TESTS}" // Skipping tests based on the parameter
+                            sh "mvn clean package -DskipTests=${params.SKIP_TESTS}"
                         }
                     } else {
                         error "pom.xml not found in directory: ${projectDir}"
