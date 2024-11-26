@@ -4,14 +4,6 @@
 
     <modelVersion>4.0.0</modelVersion>
 
-    <!-- Parent POM (optional if you're using multi-module) -->
-    <parent>
-        <groupId>com.example.maven-project</groupId>
-        <artifactId>maven-project</artifactId>
-        <version>1.0-SNAPSHOT</version>
-        <relativePath>../pom.xml</relativePath> <!-- Use only if it's a multi-module project -->
-    </parent>
-
     <!-- Project Information -->
     <artifactId>webapp</artifactId>
     <packaging>war</packaging>
@@ -44,13 +36,4 @@
 
         <!-- JSP API -->
         <dependency>
-            <groupId>javax.servlet.jsp</groupId>
-            <artifactId>jsp-api</artifactId>
-            <version>2.3.3</version> <!-- Specify the version -->
-            <scope>provided</scope>
-        </dependency>
-
-        <!-- Optional: Add any additional dependencies here (e.g., libraries for logging, database, etc.) -->
-    </dependencies>
-
-</project>
+            <groupId>javax.s
