@@ -5,9 +5,14 @@ pipeline {
         jdk 'Java17'  // Ensure Java 17 is configured in Jenkins Global Tool Configuration
         maven 'Maven3' // Ensure Maven 3 is configured in Jenkins Global Tool Configuration
     }
-
     environment {
-        SONARQUBE_TOKEN = 'sqa_c91633d5ba48c4131f20e517dbda47633cc08a63' // SonarQube Token (ensure this is set securely)
+	    APP_NAME = "profilesapp-pipeline"
+            RELEASE = "1.0.0"
+            DOCKER_USER = "abbasnaqvi"
+            DOCKER_PASS = 'dockerhub'
+            IMAGE_NAME = "${DOCKER_USER}" + "/" + "${APP_NAME}"
+            IMAGE_TAG = "${RELEASE}-${BUILD_NUMBER}"
+	    JENKINS_API_TOKEN = credentials("JENKINS_API_TOKEN")
     }
 
     stages {
@@ -55,22 +60,39 @@ pipeline {
             }
         }
 
-        stage("SonarQube Analysis") {
+         stage("SonarQube Analysis"){
+           steps {
+	           script {
+		        withSonarQubeEnv(credentialsId: 'jenkins-sonarqube-token') { 
+                        sh "mvn sonar:sonar"
+		        }
+	           }	
+           }
+       }
+
+       stage("Quality Gate"){
+           steps {
+               script {
+                    waitForQualityGate abortPipeline: false, credentialsId: 'jenkins-sonarqube-token'
+                }	
+            }
+
+        }
+
+        stage("Build & Push Docker Image") {
             steps {
                 script {
-                    def projectDir = 'profilesapp' // Directory where the project is located
-                    if (fileExists("${projectDir}/pom.xml")) {
-                        dir("${projectDir}") {
-                            // Run SonarQube analysis
-                            withSonarQubeEnv('sonarqube-server') {  // Make sure SonarQube is configured correctly in Jenkins
-                                sh "mvn clean verify sonar:sonar -Dsonar.projectKey=profilesapp -Dsonar.host.url=http://your-sonarqube-server-url -Dsonar.login=${SONARQUBE_TOKEN}"
-                            }
-                        }
-                    } else {
-                        error "pom.xml not found in directory: ${projectDir}"
+                    docker.withRegistry('',DOCKER_PASS) {
+                        docker_image = docker.build "${IMAGE_NAME}"
+                    }
+
+                    docker.withRegistry('',DOCKER_PASS) {
+                        docker_image.push("${IMAGE_TAG}")
+                        docker_image.push('latest')
                     }
                 }
             }
-        }
+
+       }
     }
 }
