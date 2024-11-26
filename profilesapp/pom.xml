@@ -4,29 +4,27 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>com.example</groupId> <!-- Replace with your group ID -->
-    <artifactId>your-project-name</artifactId> <!-- Replace with your artifact ID -->
-    <version>1.0-SNAPSHOT</version> <!-- Replace with your project version -->
+    <groupId>com.example</groupId>
+    <artifactId>your-project-name</artifactId>
+    <version>1.0-SNAPSHOT</version>
     <packaging>jar</packaging>
 
-    <name>your-project-name</name> <!-- Replace with your project name -->
+    <name>your-project-name</name>
     <description>Sample project with Maven and Java 17</description>
 
-    <!-- Parent configuration (optional) -->
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>2.5.4</version> <!-- Example version of Spring Boot -->
-        <relativePath /> <!-- Lookup parent from repository -->
+        <version>2.5.4</version>
+        <relativePath />
     </parent>
 
     <properties>
-        <maven.compiler.source>17</maven.compiler.source> <!-- Java 17 -->
-        <maven.compiler.target>17</maven.compiler.target> <!-- Java 17 -->
+        <maven.compiler.source>17</maven.compiler.source>
+        <maven.compiler.target>17</maven.compiler.target>
     </properties>
 
     <dependencies>
-        <!-- JUnit 5 dependency for testing -->
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-api</artifactId>
@@ -39,8 +37,6 @@
             <version>5.7.1</version>
             <scope>test</scope>
         </dependency>
-
-        <!-- Optional: If you're using Spring Boot, add dependencies for Spring Web, etc. -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
@@ -50,7 +46,6 @@
 
     <build>
         <plugins>
-            <!-- Maven Compiler Plugin for Java 17 -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
@@ -61,7 +56,6 @@
                 </configuration>
             </plugin>
 
-            <!-- Maven Surefire Plugin for running tests -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
@@ -73,11 +67,17 @@
                 </configuration>
             </plugin>
 
-            <!-- Maven JAR Plugin for packaging the application as a JAR -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-jar-plugin</artifactId>
                 <version>3.1.0</version>
+            </plugin>
+
+            <!-- Jenkins Plugin (Optional) -->
+            <plugin>
+                <groupId>org.jenkins-ci.plugins</groupId>
+                <artifactId>maven-jenkins-plugin</artifactId>
+                <version>3.1</version>
             </plugin>
         </plugins>
     </build>
