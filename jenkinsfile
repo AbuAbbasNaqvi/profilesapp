@@ -6,6 +6,10 @@ pipeline {
         maven 'Maven3'
     }
 
+    environment {
+        SONARQUBE_TOKEN = 'sqa_c91633d5ba48c4131f20e517dbda47633cc08a63' // Token value
+    }
+
     stages {
         stage("Cleanup Workspace") {
             steps {
@@ -22,14 +26,10 @@ pipeline {
         stage("Build Application") {
             steps {
                 script {
-                    // If your pom.xml is located in a subfolder like 'profilesapp', adjust the path here.
-                    // This step makes sure you're in the correct directory.
                     def projectDir = 'profilesapp' // Change this to the correct directory if needed
-
-                    // Make sure the directory exists before running Maven
                     if (fileExists("${projectDir}/pom.xml")) {
                         dir("${projectDir}") {
-                            sh "mvn clean package -DskipTests"  // Optional: Skips tests for faster builds
+                            sh "mvn clean package -DskipTests" // Optional: Skips tests for faster builds
                         }
                     } else {
                         error "pom.xml not found in directory: ${projectDir}"
@@ -42,8 +42,6 @@ pipeline {
             steps {
                 script {
                     def projectDir = 'profilesapp' // Change this to the correct directory if needed
-
-                    // Make sure the directory exists before running Maven tests
                     if (fileExists("${projectDir}/pom.xml")) {
                         dir("${projectDir}") {
                             sh "mvn test"
@@ -54,16 +52,15 @@ pipeline {
                 }
             }
         }
-    }
-}
-stage("SonarQube Analysis") {
+
+        stage("SonarQube Analysis") {
             steps {
                 script {
-                    def projectDir = 'profilesapp'
+                    def projectDir = 'profilesapp' // Change this to the correct directory if needed
                     if (fileExists("${projectDir}/pom.xml")) {
                         dir("${projectDir}") {
                             // Run SonarQube scanner analysis
-                            withSonarQubeEnv(credentialId: 'jenkins-sonarqube-token') {
+                            withSonarQubeEnv('SonarQube') {  // Use the name of the SonarQube server configured in Jenkins
                                 sh "mvn clean verify sonar:sonar -Dsonar.projectKey=profilesapp -Dsonar.host.url=http://your-sonarqube-server-url -Dsonar.login=${SONARQUBE_TOKEN}"
                             }
                         }
