@@ -2,18 +2,18 @@ pipeline {
     agent { label 'Jenkins-Agent' }
 
     tools {
-        jdk 'Java17'
-        maven 'Maven3'
+        jdk 'Java17'  // Ensure Java 17 is configured in Jenkins Global Tool Configuration
+        maven 'Maven3' // Ensure Maven 3 is configured in Jenkins Global Tool Configuration
     }
 
     environment {
-        SONARQUBE_TOKEN = 'sqa_c91633d5ba48c4131f20e517dbda47633cc08a63' // Token value
+        SONARQUBE_TOKEN = 'sqa_c91633d5ba48c4131f20e517dbda47633cc08a63' // SonarQube Token (ensure this is set securely)
     }
 
     stages {
         stage("Cleanup Workspace") {
             steps {
-                cleanWs()
+                cleanWs() // Clean workspace before starting the build
             }
         }
 
@@ -26,10 +26,11 @@ pipeline {
         stage("Build Application") {
             steps {
                 script {
-                    def projectDir = 'profilesapp' // Change this to the correct directory if needed
+                    def projectDir = 'profilesapp' // Directory where the project is located
                     if (fileExists("${projectDir}/pom.xml")) {
                         dir("${projectDir}") {
-                            sh "mvn clean package -DskipTests" // Optional: Skips tests for faster builds
+                            // Use Maven to build the application
+                            sh "mvn clean package -DskipTests" // Skip tests for faster builds (can be removed if needed)
                         }
                     } else {
                         error "pom.xml not found in directory: ${projectDir}"
@@ -41,9 +42,10 @@ pipeline {
         stage("Test Application") {
             steps {
                 script {
-                    def projectDir = 'profilesapp' // Change this to the correct directory if needed
+                    def projectDir = 'profilesapp' // Directory where the project is located
                     if (fileExists("${projectDir}/pom.xml")) {
                         dir("${projectDir}") {
+                            // Run tests using Maven
                             sh "mvn test"
                         }
                     } else {
@@ -56,11 +58,11 @@ pipeline {
         stage("SonarQube Analysis") {
             steps {
                 script {
-                    def projectDir = 'profilesapp' // Change this to the correct directory if needed
+                    def projectDir = 'profilesapp' // Directory where the project is located
                     if (fileExists("${projectDir}/pom.xml")) {
                         dir("${projectDir}") {
-                            // Run SonarQube scanner analysis
-                            withSonarQubeEnv('sonarqube-server') {  // Use the name of the SonarQube server configured in Jenkins
+                            // Run SonarQube analysis
+                            withSonarQubeEnv('sonarqube-server') {  // Make sure SonarQube is configured correctly in Jenkins
                                 sh "mvn clean verify sonar:sonar -Dsonar.projectKey=profilesapp -Dsonar.host.url=http://your-sonarqube-server-url -Dsonar.login=${SONARQUBE_TOKEN}"
                             }
                         }
@@ -68,12 +70,6 @@ pipeline {
                         error "pom.xml not found in directory: ${projectDir}"
                     }
                 }
-            }
-        }
-
-        stage("Archive Artifacts") {
-            steps {
-                archiveArtifacts '**/target/*.jar'
             }
         }
     }
