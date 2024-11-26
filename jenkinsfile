@@ -29,7 +29,7 @@ pipeline {
 
         stage("Checkout from SCM") {
             steps {
-                git branch: 'develop', credentialsId: 'github', url: 'https://github.com/AbuAbbasNaqvi/profilesapp.git'
+                git branch: 'master', credentialsId: 'github', url: 'https://github.com/AbuAbbasNaqvi/profilesapp.git'
             }
         }
 
